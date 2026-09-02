@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    background: linear-gradient(135deg, #0d0618 0%, #1a0a2e 45%, #0d0f1f 100%);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0618;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3d1a6e;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A371F7;
+}
+
+/* Background Grid Pattern */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(163, 113, 247, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(163, 113, 247, 0.1) 1px, transparent 1px);
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(163, 113, 247, 0.22), transparent 70%);
+}
+
+/* Glow Utility */
+.glow-blue {
+  box-shadow: 0 0 25px -5px rgba(163, 113, 247, 0.4);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px -5px rgba(63, 185, 80, 0.3);
+}
+
+.glass-card {
+  background: rgba(26, 10, 46, 0.7);
+  border: 1px solid rgba(163, 113, 247, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.glass-card:hover {
+  border-color: rgba(163, 113, 247, 0.5);
+}
+
+/* Global Pill Button Styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #A371F7 0%, #7c3aed 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 18px 0 rgba(163, 113, 247, 0.35);
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #b98ef9 0%, #9333ea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(163, 113, 247, 0.5);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  background-color: transparent;
+  border: 1.5px solid #A371F7;
+  color: #A371F7;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  background: linear-gradient(135deg, #A371F7 0%, #7c3aed 100%);
+  color: #ffffff;
+  border-color: #A371F7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(163, 113, 247, 0.4);
+}
+
+/* ─── Scroll Reveal Animations ───────────────────────────────── */
+
+/* Default: slide up + fade in */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Slide from left */
+[data-reveal="left"] {
+  transform: translateX(-50px);
+}
+
+/* Slide from right */
+[data-reveal="right"] {
+  transform: translateX(50px);
+}
+
+/* Scale up */
+[data-reveal="scale"] {
+  transform: scale(0.92) translateY(20px);
+}
+
+/* When visible */
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+/* Stagger delays */
+[data-delay="100"] {
+  transition-delay: 100ms;
+}
+
+[data-delay="200"] {
+  transition-delay: 200ms;
+}
+
+[data-delay="300"] {
+  transition-delay: 300ms;
+}
+
+[data-delay="400"] {
+  transition-delay: 400ms;
+}
+
+[data-delay="500"] {
+  transition-delay: 500ms;
+}
+
+[data-delay="600"] {
+  transition-delay: 600ms;
+}
+
+/* Section divider accent */
+.section-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(163, 113, 247, 0.3), transparent);
+  margin: 0;
+}
+
+/* Offset anchor scroll targets by navbar height */
+section[id] {
+  scroll-margin-top: 68px;
+}
