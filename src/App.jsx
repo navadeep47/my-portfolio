@@ -7,7 +7,6 @@ import Education from './components/Education';
 import Skills from './components/Skills';
 import Achievements from './components/Achievements';
 import Contact from './components/Contact';
-import Footer from './components/Footer';
 import ResumeModal from './components/ResumeModal';
 import { useScrollReveal } from './hooks/useScrollReveal';
 
@@ -128,9 +127,6 @@ export default function App() {
         </section>
 
       </main>
-
-      {/* Footer */}
-      <Footer onSelectTab={scrollToSection} />
 
       {/* Resume Modal */}
       <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, FileText } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, FileText, AlertCircle, Loader2 } from 'lucide-react';
 import { GithubIcon, LinkedinIcon, InstagramIcon } from './SocialIcons';
+import emailjs from '@emailjs/browser';
 
 export default function Contact({ onOpenResume }) {
   const [formData, setFormData] = useState({
@@ -9,15 +10,94 @@ export default function Contact({ onOpenResume }) {
     subject: '',
     message: ''
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
+    setStatus('sending');
+    setErrorMessage('');
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    const web3formsKey = import.meta.env.VITE_WEB3FORMS_KEY;
+
+    try {
+      if (serviceId && templateId && publicKey) {
+        // Send via EmailJS SDK (Custom sender "Portfolio Message")
+        await emailjs.send(
+          serviceId,
+          templateId,
+          {
+            from_name: 'Portfolio Message',
+            name: formData.name,
+            email: formData.email,
+            reply_to: formData.email,
+            subject: formData.subject ? `Message from portfolio: ${formData.subject}` : `Message from portfolio (${formData.name})`,
+            message: formData.message,
+            to_email: 'pnavadeep10@gmail.com'
+          },
+          publicKey
+        );
+      } else if (web3formsKey) {
+        // Send via Web3Forms (Custom sender "Portfolio Message")
+        const response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            access_key: web3formsKey,
+            from_name: 'Portfolio Message',
+            subject: formData.subject ? `Message from portfolio: ${formData.subject}` : `Message from portfolio (${formData.name})`,
+            name: formData.name,
+            email: formData.email,
+            message: formData.message
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.success !== true) {
+          throw new Error(data.message || 'Failed to send message');
+        }
+      } else {
+        // Direct activated endpoint to pnavadeep10@gmail.com
+        const response = await fetch('https://formsubmit.co/ajax/40d3d79099082e1b7634b965c678b900', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            Name: formData.name,
+            Email: formData.email,
+            Subject: formData.subject || 'Portfolio Inquiry',
+            Message: formData.message,
+            _replyto: formData.email,
+            _subject: formData.subject ? `Message from portfolio: ${formData.subject}` : `Message from portfolio (${formData.name})`,
+            _template: 'table',
+            _captcha: 'false'
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok || (data.success !== 'true' && data.success !== true)) {
+          throw new Error(data.message || 'Failed to send message');
+        }
+      }
+
+      setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 4000);
+      setTimeout(() => {
+        setStatus('idle');
+      }, 5000);
+    } catch (err) {
+      console.error('Contact form submission error:', err);
+      setStatus('error');
+      setErrorMessage(err?.text || err?.message || 'Failed to send message. Please try again.');
+    }
   };
 
   return (
@@ -148,7 +228,18 @@ export default function Contact({ onOpenResume }) {
               Send a Direct Message
             </h3>
 
-            {submitted ? (
+            {status === 'activation_required' ? (
+              <div className="p-6 rounded-2xl bg-[#FFBD2E]/15 border border-[#FFBD2E]/40 text-[#FFBD2E] space-y-2 text-center animate-in zoom-in-95 duration-150">
+                <CheckCircle2 className="w-10 h-10 mx-auto text-[#FFBD2E]" />
+                <h4 className="text-base font-bold text-[#EDE9F8]">Action Required: Activate Your Form</h4>
+                <p className="text-sm text-[#EDE9F8]">
+                  An activation email was sent to <strong className="text-[#FFBD2E]">pnavadeep10@gmail.com</strong>.
+                </p>
+                <p className="text-xs text-[#b0a0c8]">
+                  Please open Gmail (check <strong>Spam / Junk</strong> folder too) and click <strong>"Activate Form"</strong>. Once clicked, all future messages will arrive directly in your inbox.
+                </p>
+              </div>
+            ) : status === 'success' ? (
               <div className="p-6 rounded-2xl bg-[#3FB950]/15 border border-[#3FB950]/40 text-[#3FB950] space-y-2 text-center animate-in zoom-in-95 duration-150">
                 <CheckCircle2 className="w-10 h-10 mx-auto" />
                 <h4 className="text-base font-bold">Message Sent Successfully!</h4>
@@ -158,6 +249,16 @@ export default function Contact({ onOpenResume }) {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {status === 'error' && (
+                  <div className="p-4 rounded-xl bg-red-500/15 border border-red-500/40 text-red-300 flex items-start gap-3 text-sm animate-in fade-in duration-150">
+                    <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-red-200">Failed to send message. Please try again.</p>
+                      {errorMessage && <p className="text-xs text-red-300/80 mt-0.5">{errorMessage}</p>}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-mono text-[#b0a0c8] mb-1.5 uppercase">
@@ -170,6 +271,7 @@ export default function Contact({ onOpenResume }) {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl bg-[#0d0618] border border-[#3d1a6e]/70 text-[#EDE9F8] text-sm sm:text-base focus:outline-none focus:border-[#A371F7] transition-colors"
+                      disabled={status === 'sending'}
                     />
                   </div>
 
@@ -184,6 +286,7 @@ export default function Contact({ onOpenResume }) {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-xl bg-[#0d0618] border border-[#3d1a6e]/70 text-[#EDE9F8] text-sm sm:text-base focus:outline-none focus:border-[#A371F7] transition-colors"
+                      disabled={status === 'sending'}
                     />
                   </div>
                 </div>
@@ -198,6 +301,7 @@ export default function Contact({ onOpenResume }) {
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-[#0d0618] border border-[#3d1a6e]/70 text-[#EDE9F8] text-sm sm:text-base focus:outline-none focus:border-[#A371F7] transition-colors"
+                    disabled={status === 'sending'}
                   />
                 </div>
 
@@ -212,15 +316,26 @@ export default function Contact({ onOpenResume }) {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-[#0d0618] border border-[#3d1a6e]/70 text-[#EDE9F8] text-sm sm:text-base focus:outline-none focus:border-[#A371F7] transition-colors resize-none"
+                    disabled={status === 'sending'}
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="btn-primary w-full !py-3 !text-sm sm:!text-base font-bold group"
+                  disabled={status === 'sending'}
+                  className="btn-primary w-full !py-3 !text-sm sm:!text-base font-bold group flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <span>Send Message</span>
-                  <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  {status === 'sending' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Sending Message...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Send Message</span>
+                      <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
                 </button>
               </form>
             )}
@@ -231,3 +346,4 @@ export default function Contact({ onOpenResume }) {
     </div>
   );
 }
+
